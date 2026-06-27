@@ -336,7 +336,7 @@
       enabled: true,
       containerIdentifier: "iCloud.com.shiyingxu.BabyTracker",
       environment: "development",
-      apiToken: "A7030427376A4A64A08054ED02D3798944EE7AF2F7E340CBBA141DE1B2A88483",
+      apiToken: "da49262223e043813139ef99a2ef045b261e37dbc489dcaeef1fbdd9455c6b7e",
       recordType: "PublicBabySnapshot"
     };
 
@@ -362,7 +362,8 @@
         lastSleepEnded: time => `Last sleep ended at ${time}`,
         updatedAgo: text => `Updated ${text} ago`,
         updatedJustNow: "Updated just now",
-        token: value => `token: ${value}`,
+        linkReady: "Private link loaded",
+        loadFailed: "Could not load the latest status. Please refresh or check the link.",
         privacy: "Anyone with this private link can view the live status. The production page pulls the latest read-only snapshot from iCloud when opened, refreshed, and every 1 minute.",
         careItems: ["D3 done", "Probiotic missing"]
       },
@@ -387,7 +388,8 @@
         lastSleepEnded: time => `上次睡眠结束于 ${time}`,
         updatedAgo: text => `${text}前更新`,
         updatedJustNow: "刚刚更新",
-        token: value => `token：${value}`,
+        linkReady: "私密链接已加载",
+        loadFailed: "暂时无法读取最新状态，请刷新或检查链接。",
         privacy: "任何拥有这个私密链接的人都可以查看实时状态。正式版会在打开、手动刷新，以及每 1 分钟自动刷新时从 iCloud 拉取最新只读快照。",
         careItems: ["D3 已记录", "益生菌未记录"]
       }
@@ -520,6 +522,20 @@
       };
     }
 
+    function renderUnavailable(message) {
+      document.getElementById("elapsed").textContent = "--";
+      document.getElementById("lastMilk").textContent = "--";
+      document.getElementById("lastMilkAt").textContent = `${t("at")} --`;
+      document.getElementById("totalMilk").textContent = "--";
+      document.getElementById("diaper").textContent = `${t("last")} --`;
+      document.getElementById("poop").textContent = t("loadFailed");
+      document.getElementById("sleep").textContent = "--";
+      document.getElementById("sleepDetail").textContent = t("loadFailed");
+      document.getElementById("care").textContent = t("loadFailed");
+      document.getElementById("updated").textContent = message || t("loadFailed");
+      document.getElementById("tokenLabel").textContent = token === "sample-token" ? "" : t("linkReady");
+    }
+
     async function render() {
       const refreshButton = document.getElementById("refresh");
       refreshButton.textContent = t("refreshing");
@@ -528,8 +544,7 @@
         snapshot = await loadSnapshot();
       } catch (error) {
         refreshButton.textContent = t("refresh");
-        document.getElementById("updated").textContent = error.message;
-        document.getElementById("tokenLabel").textContent = t("token", token);
+        renderUnavailable(error.message);
         return;
       }
       document.getElementById("elapsed").textContent = elapsedText(snapshot.lastMilkAt);
@@ -549,7 +564,7 @@
         (language === "zh" ? snapshot.careSummaryZh : snapshot.careSummaryEn) || copy[language].careItems.join(" · ");
       const updatedAgo = elapsedText(snapshot.updatedAt);
       document.getElementById("updated").textContent = updatedAgo === "0m" ? t("updatedJustNow") : t("updatedAgo", updatedAgo);
-      document.getElementById("tokenLabel").textContent = t("token", token);
+      document.getElementById("tokenLabel").textContent = token === "sample-token" ? "" : t("linkReady");
       refreshButton.textContent = t("refresh");
     }
 
