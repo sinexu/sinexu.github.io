@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BabyTracker Live Status</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #fff7ef;
+      --card: #fffefb;
+      --text: #403833;
+      --muted: #7a6e66;
+      --sky: #6baeea;
+      --sky-soft: #dcecf8;
+      --mint: #80c7a8;
+      --mint-soft: #dff1e8;
+      --peach: #f2b373;
+      --peach-soft: #fbe4d4;
+      --lavender: #a89adb;
+      --lavender-soft: #e9e4f6;
+      --aqua-soft: #dcf1f3;
+      --shadow: rgba(98, 73, 48, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(245, 209, 191, 0.55), transparent 32%),
+        radial-gradient(circle at 90% 8%, rgba(199, 223, 240, 0.65), transparent 34%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(100%, 480px);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .pixel-icon {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+    }
+
+    .brand-logo {
+      width: 34px;
+      height: 34px;
+      border-radius: 11px;
+      box-shadow: 0 6px 14px rgba(98, 73, 48, 0.10);
+      object-fit: cover;
+    }
+
+    .lang-toggle {
+      display: flex;
+      padding: 4px;
+      border-radius: 999px;
+      background: rgba(255, 253, 249, 0.86);
+      box-shadow: 0 8px 20px rgba(98, 73, 48, 0.08);
+    }
+
+    .lang-toggle button {
+      padding: 7px 10px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .lang-toggle button.active {
+      background: var(--text);
+      color: white;
+    }
+
+    .hero {
+      position: relative;
+      display: grid;
+      gap: 10px;
+      padding: 22px;
+      border-radius: 28px;
+      background: rgba(255, 253, 249, 0.82);
+      box-shadow: 0 18px 42px var(--shadow);
+      backdrop-filter: blur(14px);
+      overflow: hidden;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2.5rem, 15vw, 4.8rem);
+      line-height: 0.92;
+      letter-spacing: -0.06em;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .card {
+      position: relative;
+      min-height: 116px;
+      padding: 16px;
+      border-radius: 24px;
+      background: var(--card);
+      box-shadow: 0 10px 26px rgba(98, 73, 48, 0.09);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .pixel-icon {
+      width: 30px;
+      height: 30px;
+      flex: 0 0 auto;
+      border-radius: 9px;
+    }
+
+    .milk-pair {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .mini-label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      font-weight: 800;
+    }
+
+    .card.wide {
+      grid-column: 1 / -1;
+    }
+
+    .label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 800;
+    }
+
+    .value {
+      margin: 0;
+      font-size: 1.45rem;
+      font-weight: 850;
+      letter-spacing: -0.03em;
+    }
+
+    .detail {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 650;
+      line-height: 1.35;
+    }
+
+    .milk {
+      background: linear-gradient(145deg, var(--sky-soft), #fffdf9 82%);
+    }
+
+    .diaper {
+      background: linear-gradient(145deg, var(--mint-soft), #fffdf9 82%);
+    }
+
+    .sleep {
+      background: linear-gradient(145deg, var(--lavender-soft), #fffdf9 82%);
+    }
+
+    .care {
+      background: linear-gradient(145deg, var(--peach-soft), #fffdf9 82%);
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 16px;
+      background: #403833;
+      color: white;
+      font: inherit;
+      font-weight: 800;
+    }
+
+    .token {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    footer {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      font-weight: 650;
+      line-height: 1.45;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topbar">
+      <div class="brand">
+        <img class="brand-logo" src="assets/app-icon.png" alt="">
+        <p class="eyebrow" data-i18n="brand">BabyTracker Live</p>
+      </div>
+      <div class="lang-toggle" aria-label="Language">
+        <button type="button" id="langEn" class="active">EN</button>
+        <button type="button" id="langZh">中文</button>
+      </div>
+    </div>
+
+    <section class="hero" aria-live="polite">
+      <h1 id="elapsed">2h 15m</h1>
+      <p class="subtitle" data-i18n="sinceLastMilk">since last milk</p>
+    </section>
+
+    <section class="grid">
+      <article class="card milk wide">
+        <div class="card-head">
+          <p class="label" data-i18n="milkStatus">Milk status</p>
+          <img class="pixel-icon" src="assets/feeding.png" alt="">
+        </div>
+        <div class="milk-pair">
+          <div>
+            <p class="mini-label" data-i18n="lastMilk">Last milk</p>
+            <p class="value" id="lastMilk">145 ml</p>
+            <p class="detail" id="lastMilkAt">at 8:20 AM</p>
+          </div>
+          <div>
+            <p class="mini-label" data-i18n="todayTotal">Today total</p>
+            <p class="value" id="totalMilk">535 ml</p>
+            <p class="detail" data-i18n="milkLoggedToday">milk logged today</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="card diaper">
+        <div class="card-head">
+          <p class="label" data-i18n="diaperLabel">Diaper</p>
+          <img class="pixel-icon" src="assets/diaper.png" alt="">
+        </div>
+        <p class="value" id="diaper">Last 9:05 AM</p>
+        <p class="detail" id="poop">Poop 1 time today</p>
+      </article>
+
+      <article class="card sleep">
+        <div class="card-head">
+          <p class="label" data-i18n="sleepLabel">Sleep</p>
+          <img class="pixel-icon" src="assets/sleep.png" alt="">
+        </div>
+        <p class="value" id="sleep">Awake</p>
+        <p class="detail" id="sleepDetail">Last sleep ended at 7:10 AM</p>
+      </article>
+
+      <article class="card care wide">
+        <div class="card-head">
+          <p class="label" data-i18n="careLabel">Care reminders</p>
+          <img class="pixel-icon" src="assets/care.png" alt="">
+        </div>
+        <p class="value" id="care">D3 done · Probiotic missing</p>
+        <p class="detail" id="updated">Updated just now</p>
+      </article>
+    </section>
+
+    <div class="actions">
+      <button type="button" id="refresh">Refresh</button>
+      <div class="token" id="tokenLabel"></div>
+    </div>
+
+    <footer id="privacyNote"></footer>
+  </main>
+
+  <script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js" async></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token") || "sample-token";
+    const AUTO_REFRESH_MS = 60 * 1000;
+    let language = params.get("lang") === "zh" ? "zh" : "en";
+
+    const cloudKitConfig = {
+      enabled: false,
+      containerIdentifier: "iCloud.com.shiyingxu.BabyTracker",
+      environment: "development",
+      apiToken: "PASTE_CLOUDKIT_WEB_TOKEN_HERE",
+      recordType: "PublicBabySnapshot"
+    };
+
+    const copy = {
+      en: {
+        brand: "BabyTracker Live",
+        mainLabel: "Last milk",
+        sinceLastMilk: "since last milk",
+        milkStatus: "Milk status",
+        lastMilk: "Last milk",
+        todayTotal: "Today total",
+        milkLoggedToday: "milk logged today",
+        diaperLabel: "Diaper",
+        sleepLabel: "Sleep",
+        careLabel: "Care reminders",
+        refresh: "Refresh",
+        refreshing: "Refreshing...",
+        at: "at",
+        last: "Last",
+        poopToday: count => `Poop ${count} ${count === 1 ? "time" : "times"} today`,
+        sleeping: "Sleeping",
+        awake: "Awake",
+        since: "since",
+        lastSleepEnded: time => `Last sleep ended at ${time}`,
+        updatedAgo: text => `Updated ${text} ago`,
+        updatedJustNow: "Updated just now",
+        justNow: "just now",
+        token: value => `token: ${value}`,
+        privacy: "Anyone with this private link can view the live status. The production page pulls the latest read-only snapshot from iCloud when opened, refreshed, and every 1 minute.",
+        careItems: ["D3 done", "Probiotic missing"]
+      },
+      zh: {
+        brand: "BabyTracker 实时状态",
+        mainLabel: "上次喝奶",
+        sinceLastMilk: "距离上次喝奶",
+        milkStatus: "奶量状态",
+        lastMilk: "上次喝奶",
+        todayTotal: "今日总量",
+        milkLoggedToday: "今天已记录奶量",
+        diaperLabel: "尿布",
+        sleepLabel: "睡眠",
+        careLabel: "照护提醒",
+        refresh: "刷新",
+        refreshing: "刷新中...",
+        at: "时间",
+        last: "上次",
+        poopToday: count => `今天便便 ${count} 次`,
+        sleeping: "正在睡觉",
+        awake: "醒着",
+        since: "开始于",
+        lastSleepEnded: time => `上次睡眠结束于 ${time}`,
+        updatedAgo: text => `${text}前更新`,
+        updatedJustNow: "刚刚更新",
+        justNow: "刚刚",
+        token: value => `token：${value}`,
+        privacy: "任何拥有这个私密链接的人都可以查看实时状态。正式版会在打开、手动刷新，以及每 1 分钟自动刷新时从 iCloud 拉取最新只读快照。",
+        careItems: ["D3 已记录", "益生菌未记录"]
+      }
+    };
+
+    const sampleSnapshot = {
+      lastMilkAt: new Date(Date.now() - 2 * 60 * 60 * 1000 - 15 * 60 * 1000).toISOString(),
+      lastMilkMl: 145,
+      totalMilkTodayMl: 535,
+      lastDiaperAt: new Date(Date.now() - 90 * 60 * 1000).toISOString(),
+      poopCountToday: 1,
+      sleep: {
+        isSleeping: false,
+        lastEndedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
+      },
+      careKeys: ["careItems"],
+      updatedAt: new Date().toISOString()
+    };
+
+    function formatTime(value) {
+      return new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).format(new Date(value));
+    }
+
+    function elapsedText(value) {
+      const minutes = Math.max(Math.floor((Date.now() - new Date(value).getTime()) / 60000), 0);
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      if (hours === 0) return `${remainingMinutes}m`;
+      if (remainingMinutes === 0) return `${hours}h`;
+      return `${hours}h ${remainingMinutes}m`;
+    }
+
+    function t(key, ...args) {
+      const value = copy[language][key];
+      return typeof value === "function" ? value(...args) : value;
+    }
+
+    function applyLanguage() {
+      document.documentElement.lang = language === "zh" ? "zh-Hans" : "en";
+      document.querySelectorAll("[data-i18n]").forEach(node => {
+        node.textContent = t(node.dataset.i18n);
+      });
+      document.getElementById("refresh").textContent = t("refresh");
+      document.getElementById("privacyNote").textContent = t("privacy");
+      document.getElementById("langEn").classList.toggle("active", language === "en");
+      document.getElementById("langZh").classList.toggle("active", language === "zh");
+    }
+
+    async function loadSnapshot() {
+      if (cloudKitConfig.enabled && cloudKitConfig.apiToken !== "PASTE_CLOUDKIT_WEB_TOKEN_HERE") {
+        return loadCloudKitSnapshot();
+      }
+
+      return sampleSnapshot;
+    }
+
+    function waitForCloudKit() {
+      if (window.CloudKit) return Promise.resolve();
+      return new Promise(resolve => {
+        window.addEventListener("cloudkitloaded", resolve, { once: true });
+      });
+    }
+
+    async function loadCloudKitSnapshot() {
+      await waitForCloudKit();
+      CloudKit.configure({
+        locale: language === "zh" ? "zh-cn" : "en-us",
+        containers: [{
+          containerIdentifier: cloudKitConfig.containerIdentifier,
+          apiTokenAuth: {
+            apiToken: cloudKitConfig.apiToken,
+            persist: false
+          },
+          environment: cloudKitConfig.environment
+        }]
+      });
+
+      const database = CloudKit.getDefaultContainer().publicCloudDatabase;
+      const response = await database.performQuery({
+        recordType: cloudKitConfig.recordType,
+        filterBy: [{
+          fieldName: "token",
+          comparator: "EQUALS",
+          fieldValue: { value: token }
+        }]
+      });
+
+      if (response.hasErrors) {
+        throw new Error(response.errors.map(error => error.message).join("; "));
+      }
+
+      const record = response.records && response.records[0];
+      if (!record) {
+        throw new Error("No snapshot found for this link.");
+      }
+
+      return snapshotFromRecord(record);
+    }
+
+    function field(record, name) {
+      return record.fields?.[name]?.value;
+    }
+
+    function snapshotFromRecord(record) {
+      return {
+        lastMilkAt: field(record, "lastMilkAt"),
+        lastMilkMl: field(record, "lastMilkMl") || 0,
+        totalMilkTodayMl: field(record, "totalMilkTodayMl") || 0,
+        lastDiaperAt: field(record, "lastDiaperAt"),
+        poopCountToday: field(record, "poopCountToday") || 0,
+        sleep: {
+          isSleeping: Boolean(field(record, "isSleeping")),
+          startedAt: field(record, "sleepStartedAt"),
+          lastEndedAt: field(record, "lastSleepEndedAt")
+        },
+        updatedAt: field(record, "updatedAt") || record.modified?.timestamp || new Date().toISOString()
+      };
+    }
+
+    async function render() {
+      const refreshButton = document.getElementById("refresh");
+      refreshButton.textContent = t("refreshing");
+      let snapshot;
+      try {
+        snapshot = await loadSnapshot();
+      } catch (error) {
+        refreshButton.textContent = t("refresh");
+        document.getElementById("updated").textContent = error.message;
+        return;
+      }
+      document.getElementById("elapsed").textContent = elapsedText(snapshot.lastMilkAt);
+      document.getElementById("lastMilk").textContent = `${snapshot.lastMilkMl} ml`;
+      document.getElementById("lastMilkAt").textContent = `${t("at")} ${formatTime(snapshot.lastMilkAt)}`;
+      document.getElementById("totalMilk").textContent = `${snapshot.totalMilkTodayMl} ml`;
+      document.getElementById("diaper").textContent = `${t("last")} ${formatTime(snapshot.lastDiaperAt)}`;
+      document.getElementById("poop").textContent = t("poopToday", snapshot.poopCountToday);
+      if (snapshot.sleep.isSleeping) {
+        document.getElementById("sleep").textContent = t("sleeping");
+        document.getElementById("sleepDetail").textContent = `${t("since")} ${formatTime(snapshot.sleep.startedAt)}`;
+      } else {
+        document.getElementById("sleep").textContent = t("awake");
+        document.getElementById("sleepDetail").textContent = t("lastSleepEnded", formatTime(snapshot.sleep.lastEndedAt));
+      }
+      document.getElementById("care").textContent = copy[language].careItems.join(" · ");
+      const updatedAgo = elapsedText(snapshot.updatedAt);
+      document.getElementById("updated").textContent = updatedAgo === "0m" ? t("updatedJustNow") : t("updatedAgo", updatedAgo);
+      document.getElementById("tokenLabel").textContent = t("token", token);
+      refreshButton.textContent = t("refresh");
+    }
+
+    document.getElementById("refresh").addEventListener("click", render);
+    document.getElementById("langEn").addEventListener("click", () => {
+      language = "en";
+      applyLanguage();
+      render();
+    });
+    document.getElementById("langZh").addEventListener("click", () => {
+      language = "zh";
+      applyLanguage();
+      render();
+    });
+    applyLanguage();
+    render();
+    setInterval(render, AUTO_REFRESH_MS);
+  </script>
+</body>
+</html>
