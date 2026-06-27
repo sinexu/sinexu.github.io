@@ -21,7 +21,7 @@ The BabyTracker app publishes a small read-only snapshot to iCloud. This page re
 Example link:
 
 ```text
-https://sinexu.github.io/babytracker-live-page/?token=PRIVATE_TOKEN
+https://sinexu.github.io/babytracker-live-page/?t=bt_PRIVATE_TOKEN
 ```
 
 Anyone with the link can view the live page, so treat the link like a private family link.
