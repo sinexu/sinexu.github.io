@@ -328,7 +328,7 @@
   <script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js" async></script>
   <script>
     const params = new URLSearchParams(window.location.search);
-    const token = params.get("token") || "sample-token";
+    const token = params.get("t") || "sample-token";
     const AUTO_REFRESH_MS = 60 * 1000;
     let language = params.get("lang") === "en" ? "en" : "zh";
 
