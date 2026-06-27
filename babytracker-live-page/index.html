@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hans">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -259,8 +259,8 @@
         <p class="eyebrow" data-i18n="brand">BabyTracker Live</p>
       </div>
       <div class="lang-toggle" aria-label="Language">
-        <button type="button" id="langEn" class="active">EN</button>
-        <button type="button" id="langZh">中文</button>
+        <button type="button" id="langEn">EN</button>
+        <button type="button" id="langZh" class="active">中文</button>
       </div>
     </div>
 
@@ -330,20 +330,19 @@
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token") || "sample-token";
     const AUTO_REFRESH_MS = 60 * 1000;
-    let language = params.get("lang") === "zh" ? "zh" : "en";
+    let language = params.get("lang") === "en" ? "en" : "zh";
 
     const cloudKitConfig = {
-      enabled: false,
+      enabled: true,
       containerIdentifier: "iCloud.com.shiyingxu.BabyTracker",
       environment: "development",
-      apiToken: "PASTE_CLOUDKIT_WEB_TOKEN_HERE",
+      apiToken: "A7030427376A4A64A08054ED02D3798944EE7AF2F7E340CBBA141DE1B2A88483",
       recordType: "PublicBabySnapshot"
     };
 
     const copy = {
       en: {
         brand: "BabyTracker Live",
-        mainLabel: "Last milk",
         sinceLastMilk: "since last milk",
         milkStatus: "Milk status",
         lastMilk: "Last milk",
@@ -363,14 +362,12 @@
         lastSleepEnded: time => `Last sleep ended at ${time}`,
         updatedAgo: text => `Updated ${text} ago`,
         updatedJustNow: "Updated just now",
-        justNow: "just now",
         token: value => `token: ${value}`,
         privacy: "Anyone with this private link can view the live status. The production page pulls the latest read-only snapshot from iCloud when opened, refreshed, and every 1 minute.",
         careItems: ["D3 done", "Probiotic missing"]
       },
       zh: {
         brand: "BabyTracker 实时状态",
-        mainLabel: "上次喝奶",
         sinceLastMilk: "距离上次喝奶",
         milkStatus: "奶量状态",
         lastMilk: "上次喝奶",
@@ -390,7 +387,6 @@
         lastSleepEnded: time => `上次睡眠结束于 ${time}`,
         updatedAgo: text => `${text}前更新`,
         updatedJustNow: "刚刚更新",
-        justNow: "刚刚",
         token: value => `token：${value}`,
         privacy: "任何拥有这个私密链接的人都可以查看实时状态。正式版会在打开、手动刷新，以及每 1 分钟自动刷新时从 iCloud 拉取最新只读快照。",
         careItems: ["D3 已记录", "益生菌未记录"]
@@ -407,16 +403,23 @@
         isSleeping: false,
         lastEndedAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString()
       },
-      careKeys: ["careItems"],
+      careSummaryEn: "D3 done · Probiotic missing",
+      careSummaryZh: "D3 已记录 · 益生菌未记录",
       updatedAt: new Date().toISOString()
     };
 
     function formatTime(value) {
-      return new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).format(new Date(value));
+      if (!value) return "--";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "--";
+      return new Intl.DateTimeFormat([], { hour: "numeric", minute: "2-digit" }).format(date);
     }
 
     function elapsedText(value) {
-      const minutes = Math.max(Math.floor((Date.now() - new Date(value).getTime()) / 60000), 0);
+      if (!value) return "--";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "--";
+      const minutes = Math.max(Math.floor((Date.now() - date.getTime()) / 60000), 0);
       const hours = Math.floor(minutes / 60);
       const remainingMinutes = minutes % 60;
       if (hours === 0) return `${remainingMinutes}m`;
@@ -441,11 +444,15 @@
     }
 
     async function loadSnapshot() {
-      if (cloudKitConfig.enabled && cloudKitConfig.apiToken !== "PASTE_CLOUDKIT_WEB_TOKEN_HERE") {
-        return loadCloudKitSnapshot();
+      if (token === "sample-token") {
+        return sampleSnapshot;
       }
 
-      return sampleSnapshot;
+      if (!cloudKitConfig.enabled || !cloudKitConfig.apiToken) {
+        throw new Error("CloudKit web token is not configured yet.");
+      }
+
+      return loadCloudKitSnapshot();
     }
 
     function waitForCloudKit() {
@@ -507,6 +514,8 @@
           startedAt: field(record, "sleepStartedAt"),
           lastEndedAt: field(record, "lastSleepEndedAt")
         },
+        careSummaryEn: field(record, "careSummaryEn"),
+        careSummaryZh: field(record, "careSummaryZh"),
         updatedAt: field(record, "updatedAt") || record.modified?.timestamp || new Date().toISOString()
       };
     }
@@ -520,6 +529,7 @@
       } catch (error) {
         refreshButton.textContent = t("refresh");
         document.getElementById("updated").textContent = error.message;
+        document.getElementById("tokenLabel").textContent = t("token", token);
         return;
       }
       document.getElementById("elapsed").textContent = elapsedText(snapshot.lastMilkAt);
@@ -535,7 +545,8 @@
         document.getElementById("sleep").textContent = t("awake");
         document.getElementById("sleepDetail").textContent = t("lastSleepEnded", formatTime(snapshot.sleep.lastEndedAt));
       }
-      document.getElementById("care").textContent = copy[language].careItems.join(" · ");
+      document.getElementById("care").textContent =
+        (language === "zh" ? snapshot.careSummaryZh : snapshot.careSummaryEn) || copy[language].careItems.join(" · ");
       const updatedAgo = elapsedText(snapshot.updatedAt);
       document.getElementById("updated").textContent = updatedAgo === "0m" ? t("updatedJustNow") : t("updatedAgo", updatedAgo);
       document.getElementById("tokenLabel").textContent = t("token", token);
